@@ -347,7 +347,8 @@ def cron(cluster, task, rule, image, tag, command, cpu, memory, memoryreservatio
 @click.option('--exclusive-docker-labels', is_flag=True, default=False, help='Set the given docker labels exclusively and remove all other pre-existing docker-labels from all containers')
 @click.option('--exclusive-s3-env-file', is_flag=True, default=False, help='Set the given s3 env files exclusively and remove all other pre-existing s3 env files from all containers')
 @click.option('--deregister/--no-deregister', default=True, help='Deregister or keep the old task definition (default: --deregister)')
-def update(task, image, tag, command, env, env_file, s3_env_file, secret, secrets_env_file, role, region, access_key_id, secret_access_key, profile, account, assume_role, diff, exclusive_env, exclusive_s3_env_file, exclusive_secrets, runtime_platform, deregister, docker_label, exclusive_docker_labels):
+@click.option('-o', '--out-file', type=str, required=False, help='Sets the file to write structured JSON output to')
+def update(task, image, tag, command, env, env_file, s3_env_file, secret, secrets_env_file, role, region, access_key_id, secret_access_key, profile, account, assume_role, diff, exclusive_env, exclusive_s3_env_file, exclusive_secrets, runtime_platform, deregister, docker_label, exclusive_docker_labels, out_file,):
     """
     Update a task definition.
 
@@ -373,10 +374,26 @@ def update(task, image, tag, command, env, env_file, s3_env_file, secret, secret
         if diff:
             print_diff(td)
 
-        create_task_definition(action, td)
+        new_td = create_task_definition(action, td)
 
         if deregister:
             deregister_task_definition(action, td)
+
+        if out_file:
+            output = Path(out_file)
+            if output.exists() and not output.is_file():
+                click.secho('Out-file already exists and is not a file.\n', fg='red', err=True)
+            else:
+                click.secho('Writing structured JSON output to: %s\n' % output)
+                with output.open('w') as file:
+                    data = {
+                        'old_task_definition': td.family_revision,
+                        'old_task_definition_arn': td.arn,
+                        'task_definition': new_td.family_revision,
+                        'task_definition_arn': new_td.arn
+                    }
+                    json.dump(data, file)
+
 
     except (EcsError, ClientError) as e:
         click.secho('%s\n' % str(e), fg='red', err=True)
