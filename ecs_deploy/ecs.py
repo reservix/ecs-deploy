@@ -57,6 +57,7 @@ class EcsClient(object):
                           profile_name=profile)
         self.boto = session.client(u'ecs')
         self.events = session.client(u'events')
+        logger.error(repr(session.client("sts").get_caller_identity()))
 
     @staticmethod
     def assume_role(access_key_id=None, secret_access_key=None, region=None, profile=None, session_token=None,

@@ -22,6 +22,15 @@ def ecs():  # pragma: no cover
 
 
 def get_client(access_key_id, secret_access_key, region, profile, assume_account, assume_role):
+    click.echo("###"*10)
+    click.echo("get_client Paramters:")
+    click.echo(f"access_key_id: {access_key_id}")
+    click.echo(f"secret_access_key: {secret_access_key}")
+    click.echo(f"region: {region}")
+    click.echo(f"profile: {profile}")
+    click.echo(f"assume_account: {assume_account}")
+    click.echo(f"assume_role: {assume_role}")
+    click.echo("###"*10)
     return EcsClient(access_key_id, secret_access_key, region, profile, assume_account=assume_account, assume_role=assume_role)
 
 
